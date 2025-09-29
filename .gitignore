@@ -1,5 +1,7 @@
-# Markdown files
-*.md
+# Markdown files (except README.md)
+results_summary.md
+review.md
+prd.md
 
 # PDF files
 *.pdf
