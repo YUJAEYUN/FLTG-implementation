@@ -1,0 +1,33 @@
+# Markdown files
+*.md
+
+# PDF files
+*.pdf
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Log files
+*.log
+
+# MacOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Experimental results
+results/
+outputs/
+checkpoints/
