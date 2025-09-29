@@ -1,0 +1,6 @@
+include README.md
+include requirments.txt
+recursive-include Aggregators *.py
+recursive-include Attacks *.py
+recursive-include Datasets *.py
+recursive-include Models *.py 
