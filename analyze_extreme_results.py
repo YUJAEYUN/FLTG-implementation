@@ -176,7 +176,7 @@ def main():
         results = {}
         for method in ['fedavg', 'krum', 'tm', 'fltg']:
             _, acc = parse_log(f"{results_dir}/{prefix}_{method}.log")
-            method_name = method.upper() if method != 'tm' else 'Trimmed-Mean'
+            method_name = 'FedAVG' if method == 'fedavg' else 'Krum' if method == 'krum' else 'Trimmed-Mean' if method == 'tm' else 'FLTG'
             if acc:
                 results[method_name] = acc
 

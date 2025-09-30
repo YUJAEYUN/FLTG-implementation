@@ -30,6 +30,7 @@ ENV/
 *.swo
 
 # Experimental results
-results/
 outputs/
 checkpoints/
+# Keep results directory for sharing
+# results/

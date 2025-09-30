@@ -1,0 +1,13 @@
+FLTG Extreme Non-IID Experimental Results
+==================================================
+
+Total Scenarios: 8
+FLTG Wins: 4 (50.0%)
+
+Win Counts:
+  FLTG: 4
+  FedAVG: 2
+  Krum: 2
+  Trimmed-Mean: 0
+
+Conclusion: PARTIALLY VALIDATED
