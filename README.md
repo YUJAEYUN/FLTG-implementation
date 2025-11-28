@@ -324,14 +324,14 @@ pip install -r requirements.txt
 
 ```
 FLTG/
-├── README.md                      # 실행/설치 매뉴얼 (본 문서)
+├── README.md                      # 실행/설치 매뉴얼
 ├── iot_FLTG.pptx                  # 발표자료
 ├── FLTG_...pdf                    # 논문 원본
 │
 ├── FL-Byzantine-Library/          # 핵심 소스코드 라이브러리
 │   ├── Aggregators/               # 집계 알고리즘 구현
-│   │   ├── fltg.py                # FLTG 알고리즘 (본 프로젝트 구현)
-│   │   ├── fedavg.py              # FedAVG (Baseline)
+│   │   ├── fltg.py                # FLTG 알고리즘
+│   │   ├── fedavg.py              # FedAVG
 │   │   ├── krum.py                # Krum 방어
 │   │   ├── trimmed_mean.py        # Trimmed-Mean 방어
 │   │   └── fl_trust.py            # FLTrust 방어
@@ -340,8 +340,8 @@ FLTG/
 │   │   ├── ipm.py                 # IPM 공격
 │   │   └── rop.py                 # ROP 공격
 │   ├── main.py                    # 메인 실행 파일
-│   ├── mapper.py                  # 알고리즘 매핑 (수정됨)
-│   └── parameters.py              # 파라미터 정의 (수정됨)
+│   ├── mapper.py                  # 알고리즘 매핑
+│   └── parameters.py              # 파라미터 정의
 │
 ├── scripts/                       # 실험 스크립트 모음
 │   ├── run_comprehensive_experiments.sh   # 종합 실험 스크립트
