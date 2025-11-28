@@ -1,5 +1,12 @@
 # FLTG: Byzantine-Robust Federated Learning via Angle-Based Defense
 
+> **관련 자료**
+>
+> - [발표자료 (PPT)](./iot_FLTG.pptx)
+> - [논문 원본 (PDF)](./FLTG_%20Byzantine-Robust%20Federated%20Learning%20via%20Angle-Based%20Defense%20and%20Non-IID-Aware%20Weighting.pdf)
+
+---
+
 ## 1. 프로젝트 개요
 
 본 프로젝트는 연합학습(Federated Learning) 환경에서 비잔틴 공격(Byzantine Attack)에 대응하기 위한 최신 방어 알고리즘인 FLTG(Federated Learning with Trusted Gradient)를 분석, 구현, 검증한 연구이다. FLTG 논문에서 제안하는 핵심 알고리즘을 CRYPTO-KU/FL-Byzantine-Library 프레임워크 위에 구현하였으며, 다양한 공격 시나리오와 데이터 분포 조건에서 기존 방어 기법들(FedAVG, Krum, Trimmed-Mean)과의 성능을 비교 분석하였다.
@@ -492,7 +499,3 @@ python main.py --data cifar10 --aggregator fltg --attack alie --nbyz 5 --nworker
 10. **차분 프라이버시**: Dwork, C., et al. "The Algorithmic Foundations of Differential Privacy", Foundations and Trends in Theoretical Computer Science, 2014
 
 ---
-
----
-
-**Repository**: https://github.com/YUJAEYUN/FLTG-implementation
