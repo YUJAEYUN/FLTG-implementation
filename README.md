@@ -324,23 +324,41 @@ pip install -r requirements.txt
 
 ```
 FLTG/
-├── FL-Byzantine-Library/          # 핵심 라이브러리
-│   ├── Aggregators/
-│   │   ├── fltg.py                # FLTG 알고리즘 구현 (신규)
-│   │   ├── fedavg.py              # FedAVG
-│   │   ├── krum.py                # Krum
-│   │   ├── trimmed_mean.py        # Trimmed-Mean
-│   │   └── fl_trust.py            # FLTrust
-│   ├── Attacks/                   # 공격 기법 구현
-│   │   ├── alie.py
-│   │   ├── ipm.py
-│   │   └── rop.py
+├── README.md                      # 실행/설치 매뉴얼 (본 문서)
+├── iot_FLTG.pptx                  # 발표자료
+├── FLTG_...pdf                    # 논문 원본
+│
+├── FL-Byzantine-Library/          # 핵심 소스코드 라이브러리
+│   ├── Aggregators/               # 집계 알고리즘 구현
+│   │   ├── fltg.py                # FLTG 알고리즘 (본 프로젝트 구현)
+│   │   ├── fedavg.py              # FedAVG (Baseline)
+│   │   ├── krum.py                # Krum 방어
+│   │   ├── trimmed_mean.py        # Trimmed-Mean 방어
+│   │   └── fl_trust.py            # FLTrust 방어
+│   ├── Attacks/                   # 비잔틴 공격 기법 구현
+│   │   ├── alie.py                # ALIE 공격
+│   │   ├── ipm.py                 # IPM 공격
+│   │   └── rop.py                 # ROP 공격
 │   ├── main.py                    # 메인 실행 파일
-│   ├── mapper.py                  # 알고리즘 매핑 (수정)
-│   └── parameters.py              # 파라미터 정의 (수정)
-├── results/                       # 실험 결과 저장
-├── README.md                      # 본 문서
-└── README_SETUP.txt               # 빠른 설정 가이드
+│   ├── mapper.py                  # 알고리즘 매핑 (수정됨)
+│   └── parameters.py              # 파라미터 정의 (수정됨)
+│
+├── scripts/                       # 실험 스크립트 모음
+│   ├── run_comprehensive_experiments.sh   # 종합 실험 스크립트
+│   ├── run_extreme_experiments.sh         # 극한 환경 실험 스크립트
+│   ├── run_focused_experiments.sh         # 집중 실험 스크립트
+│   ├── CHECK_EXTREME_PROGRESS.sh          # 실험 진행 확인
+│   ├── analyze_results.py                 # 결과 분석 스크립트
+│   ├── analyze_focused_results.py         # 집중 결과 분석
+│   └── analyze_extreme_results.py         # 극한 결과 분석
+│
+├── results/                       # 실험 결과 데이터 저장
+│   └── [실험별 결과 디렉토리들]
+│
+└── logs/                          # 실험 로그 파일 모음
+    ├── baseline_no_attack.log     # 공격 없는 Baseline 로그
+    ├── extreme_output.log         # 극한 실험 출력 로그
+    └── rop_*.log                  # ROP 공격 실험 로그들
 ```
 
 ### 7.3 실험 실행 명령어
