@@ -1,0 +1,23 @@
+C:\Users\user\Desktop\IoT\FLTG-implementation\FL-Byzantine-Library\client.py:43: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  self.momentum = torch.tensor(torch.zeros_like(flat_model, device=self.device))
+number of parameters  0.431 M
+Epoch 1 Accuracy 15.4 | Loss: 2.2911 | Aggregation time: 0.655
+Epoch 2 Accuracy 12.8 | Loss: 2.2311 | Aggregation time: 1.488
+Epoch 3 Accuracy 43.0 | Loss: 2.1087 | Aggregation time: 2.405
+Epoch 4 Accuracy 59.5 | Loss: 1.7513 | Aggregation time: 3.136
+Epoch 5 Accuracy 79.60000000000001 | Loss: 1.2072 | Aggregation time: 3.851
+Epoch 6 Accuracy 78.9 | Loss: 0.7829 | Aggregation time: 4.626
+Epoch 7 Accuracy 64.1 | Loss: 0.7298 | Aggregation time: 5.496
+Epoch 8 Accuracy 72.6 | Loss: 0.8153 | Aggregation time: 6.395
+Epoch 9 Accuracy 84.39999999999999 | Loss: 0.7395 | Aggregation time: 7.234
+Epoch 10 Accuracy 86.8 | Loss: 0.5792 | Aggregation time: 8.055
+Epoch 11 Accuracy 88.0 | Loss: 0.4605 | Aggregation time: 8.84
+Epoch 12 Accuracy 88.6 | Loss: 0.4159 | Aggregation time: 9.536
+Epoch 13 Accuracy 90.60000000000001 | Loss: 0.3623 | Aggregation time: 10.242
+Epoch 14 Accuracy 90.5 | Loss: 0.331 | Aggregation time: 11.033
+Epoch 15 Accuracy 92.30000000000001 | Loss: 0.3282 | Aggregation time: 11.747
+Epoch 16 Accuracy 91.3 | Loss: 0.2954 | Aggregation time: 12.54
+Epoch 17 Accuracy 92.30000000000001 | Loss: 0.2933 | Aggregation time: 13.456
+Epoch 18 Accuracy 91.3 | Loss: 0.2721 | Aggregation time: 14.27
+Epoch 19 Accuracy 91.4 | Loss: 0.2758 | Aggregation time: 15.027
+Epoch 20 Accuracy 92.5 | Loss: 0.263 | Aggregation time: 15.767

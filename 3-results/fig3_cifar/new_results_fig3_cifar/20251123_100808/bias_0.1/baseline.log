@@ -1,0 +1,55 @@
+C:\Users\user\Desktop\IoT\FLTG-implementation\FL-Byzantine-Library\client.py:43: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  self.momentum = torch.tensor(torch.zeros_like(flat_model, device=self.device))
+Files already downloaded and verified
+Files already downloaded and verified
+number of parameters  0.697 M
+Epoch 1 Accuracy 25.1 | Loss: 2.2376 | Aggregation time: 0.023
+Epoch 2 Accuracy 32.5 | Loss: 2.0513 | Aggregation time: 0.034
+Epoch 3 Accuracy 36.3 | Loss: 1.9392 | Aggregation time: 0.046
+Epoch 4 Accuracy 39.800000000000004 | Loss: 1.8604 | Aggregation time: 0.054
+Epoch 5 Accuracy 41.9 | Loss: 1.7941 | Aggregation time: 0.063
+Epoch 6 Accuracy 44.2 | Loss: 1.7395 | Aggregation time: 0.07
+Epoch 7 Accuracy 46.400000000000006 | Loss: 1.6898 | Aggregation time: 0.084
+Epoch 8 Accuracy 47.599999999999994 | Loss: 1.6444 | Aggregation time: 0.101
+Epoch 9 Accuracy 48.4 | Loss: 1.6208 | Aggregation time: 0.109
+Epoch 10 Accuracy 50.5 | Loss: 1.59 | Aggregation time: 0.122
+Epoch 11 Accuracy 51.300000000000004 | Loss: 1.5389 | Aggregation time: 0.132
+Epoch 12 Accuracy 53.800000000000004 | Loss: 1.501 | Aggregation time: 0.144
+Epoch 13 Accuracy 54.1 | Loss: 1.4602 | Aggregation time: 0.149
+Epoch 14 Accuracy 55.400000000000006 | Loss: 1.4259 | Aggregation time: 0.161
+Epoch 15 Accuracy 51.2 | Loss: 1.4524 | Aggregation time: 0.171
+Epoch 16 Accuracy 55.50000000000001 | Loss: 1.452 | Aggregation time: 0.192
+Epoch 17 Accuracy 56.89999999999999 | Loss: 1.3928 | Aggregation time: 0.202
+Epoch 18 Accuracy 58.199999999999996 | Loss: 1.3348 | Aggregation time: 0.208
+Epoch 19 Accuracy 58.699999999999996 | Loss: 1.3 | Aggregation time: 0.213
+Epoch 20 Accuracy 58.9 | Loss: 1.2769 | Aggregation time: 0.227
+Epoch 21 Accuracy 60.6 | Loss: 1.258 | Aggregation time: 0.237
+Epoch 22 Accuracy 59.3 | Loss: 1.2239 | Aggregation time: 0.245
+Epoch 23 Accuracy 61.0 | Loss: 1.2248 | Aggregation time: 0.253
+Epoch 24 Accuracy 60.699999999999996 | Loss: 1.2165 | Aggregation time: 0.267
+Epoch 25 Accuracy 62.6 | Loss: 1.1964 | Aggregation time: 0.281
+Epoch 26 Accuracy 62.3 | Loss: 1.1917 | Aggregation time: 0.29
+Epoch 27 Accuracy 64.2 | Loss: 1.1372 | Aggregation time: 0.301
+Epoch 28 Accuracy 64.4 | Loss: 1.1115 | Aggregation time: 0.311
+Epoch 29 Accuracy 65.10000000000001 | Loss: 1.1042 | Aggregation time: 0.322
+Epoch 30 Accuracy 65.3 | Loss: 1.074 | Aggregation time: 0.335
+Epoch 31 Accuracy 66.10000000000001 | Loss: 1.0453 | Aggregation time: 0.347
+Epoch 32 Accuracy 65.10000000000001 | Loss: 1.0515 | Aggregation time: 0.352
+Epoch 33 Accuracy 64.3 | Loss: 1.0644 | Aggregation time: 0.36
+Epoch 34 Accuracy 64.8 | Loss: 1.0199 | Aggregation time: 0.372
+Epoch 35 Accuracy 66.60000000000001 | Loss: 0.9984 | Aggregation time: 0.38
+Epoch 36 Accuracy 66.5 | Loss: 0.9633 | Aggregation time: 0.39
+Epoch 37 Accuracy 66.8 | Loss: 0.9583 | Aggregation time: 0.396
+Epoch 38 Accuracy 66.5 | Loss: 0.9628 | Aggregation time: 0.41
+Epoch 39 Accuracy 68.60000000000001 | Loss: 0.9419 | Aggregation time: 0.418
+Epoch 40 Accuracy 65.10000000000001 | Loss: 0.9523 | Aggregation time: 0.427
+Epoch 41 Accuracy 68.10000000000001 | Loss: 0.9314 | Aggregation time: 0.437
+Epoch 42 Accuracy 69.1 | Loss: 0.8928 | Aggregation time: 0.445
+Epoch 43 Accuracy 66.5 | Loss: 0.8735 | Aggregation time: 0.453
+Epoch 44 Accuracy 68.89999999999999 | Loss: 0.8718 | Aggregation time: 0.46
+Epoch 45 Accuracy 67.9 | Loss: 0.8532 | Aggregation time: 0.472
+Epoch 46 Accuracy 66.8 | Loss: 0.8316 | Aggregation time: 0.487
+Epoch 47 Accuracy 69.3 | Loss: 0.842 | Aggregation time: 0.496
+Epoch 48 Accuracy 69.89999999999999 | Loss: 0.8189 | Aggregation time: 0.507
+Epoch 49 Accuracy 66.9 | Loss: 0.8126 | Aggregation time: 0.513
+Epoch 50 Accuracy 68.2 | Loss: 0.8279 | Aggregation time: 0.519
