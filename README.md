@@ -6,11 +6,12 @@
 
 ## 폴더 요약
 
-- `1-implementation/` – FLTG aggregator 구현, 매퍼 등록, 하이퍼파라미터 정의 요약 (`1-implementation/implementation_notes.md:5`).
-- `2-experiments/` – MNIST·CIFAR10용 실행 스크립트와 편의 유틸(극한 Non-IID, Figure 3/4 재현, 편향 데이터 생성 등) (`2-experiments/mnist/run_extreme_experiments.sh:1`, `2-experiments/mnist/run_fig3_mnist.py:88`, `2-experiments/cifar10/new_run_fig3_cifar.py:86`).
-- `3-results/` – 각 실험의 로그·요약(예: `extreme_noniid/EXTREME_RESULTS_SUMMARY.txt`, `fig3_mnist/results_fig3_mnist/…`) (`3-results/extreme_noniid/EXTREME_RESULTS_SUMMARY.txt:1`).
-- `4-analysis/` – 정량 비교 및 개선 아이디어 정리 (`4-analysis/ANALYSIS.md:6`).
-- `5-visualization/` – 결과 플롯 스크립트(plot_fig3_mnist, plot_fig4_mnist, new_plot_fig3_cifar) (`5-visualization/plot_fig3_mnist.py:6`).
+- `1-implementation/` – FLTG 코드를 실제로 넣어 둔 곳입니다. 어떤 파일을 고쳤고 왜 필요한지 메모도 함께 들어 있습니다.
+- `2-experiments/` – 실험을 돌리는 스크립트 모음입니다. MNIST, CIFAR10, 편향 데이터 생성 도구까지 전부 이 폴더에서 실행합니다.
+- `3-results/` – 실험을 돌리고 남은 로그와 요약 파일을 모아둔 폴더입니다.
+- `4-analysis/` – 실험 결과를 해석하고 배운 점을 정리한 문서들이 여기에 있습니다. 개선 아이디어도 함께 적어 두었습니다.
+- `5-visualization/` – 실험 로그를 그래프로 바꿔 주는 플롯 스크립트가 들어 있습니다. 결과를 보고서나 발표 자료로 쓰기 쉽게 만들어 줍니다.
+- `docs/` – 전체 프로젝트 보고서와 발표 자료, 참고 문헌 목록이 모여 있는 문서 폴더입니다.
 
 ---
 
