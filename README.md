@@ -1,558 +1,73 @@
-# FLTG 비잔틴 강건 연합 학습 구현 및 검증
-## 텀 프로젝트 제출물
+# FLTG 실험 브랜치
+
+이 브랜치는 FLTG(Byzantine-Robust Federated Learning via Angle-Based Defense and Non-IID-Aware Weighting) 알고리즘을 직접 구현하고, 논문 속 핵심 시나리오들을 재현·확장하기 위한 전용 실험 공간이다. 메인 브랜치 설명 대신, 여기에서 다룬 실험과 산출물을 중심으로 정리한다.
 
 ---
 
-# FLTG 비잔틴 강건 연합 학습 구현 및 검증
+## 폴더 요약
 
-## 📋 프로젝트 개요
-
-본 프로젝트는 논문 "FLTG: Byzantine-Robust Federated Learning via Angle-Based Defense and Non-IID-Aware Weighting"에서 제안된 비잔틴 공격 방어 알고리즘을 구현하고, 다양한 실험 환경에서 성능을 검증한 연구입니다.
-
-### 주요 목표
-- FLTG 알고리즘의 완전한 구현
-- 기존 방어 기법(FedAVG, Krum, Trimmed-Mean)과의 성능 비교
-- 다양한 Non-IID 환경 및 비잔틴 공격 시나리오에서의 검증
-- 논문의 핵심 주장에 대한 실증적 검증
-
-### 기반 프레임워크
-- [CRYPTO-KU/FL-Byzantine-Library](https://github.com/CRYPTO-KU/FL-Byzantine-Library)
-- PyTorch 기반 연합 학습 및 비잔틴 공격/방어 라이브러리
+- `1-implementation/` – FLTG aggregator 구현, 매퍼 등록, 하이퍼파라미터 정의 요약 (`1-implementation/implementation_notes.md:5`).
+- `2-experiments/` – MNIST·CIFAR10용 실행 스크립트와 편의 유틸(극한 Non-IID, Figure 3/4 재현, 편향 데이터 생성 등) (`2-experiments/mnist/run_extreme_experiments.sh:1`, `2-experiments/mnist/run_fig3_mnist.py:88`, `2-experiments/cifar10/new_run_fig3_cifar.py:86`).
+- `3-results/` – 각 실험의 로그·요약(예: `extreme_noniid/EXTREME_RESULTS_SUMMARY.txt`, `fig3_mnist/results_fig3_mnist/…`) (`3-results/extreme_noniid/EXTREME_RESULTS_SUMMARY.txt:1`).
+- `4-analysis/` – 정량 비교 및 개선 아이디어 정리 (`4-analysis/ANALYSIS.md:6`).
+- `5-visualization/` – 결과 플롯 스크립트(plot_fig3_mnist, plot_fig4_mnist, new_plot_fig3_cifar) (`5-visualization/plot_fig3_mnist.py:6`).
 
 ---
 
-## 🔬 구현 내용
+## 구현 범위
 
-### 1. FLTG 알고리즘 구현
-
-FLTG는 5단계의 정교한 방어 메커니즘으로 구성됩니다:
-
-#### Step 1: ReLU-Clipped Cosine Similarity Filtering
-```python
-# 서버의 루트 데이터셋으로 계산한 그래디언트와 클라이언트 업데이트 간의 코사인 유사도 계산
-cos_sims_with_server = [F.cosine_similarity(g, g0, dim=0) for g in inputs]
-# 음수 유사도(반대 방향) 필터링
-filtered_indices = [i for i, sim in enumerate(cos_sims_with_server) if sim > 0]
-```
-**목적**: 서버와 정반대 방향을 가리키는 악의적 업데이트 제거
-
-#### Step 2: Dynamic Reference Selection
-```python
-# 이전 글로벌 그래디언트와 코사인 유사도가 가장 낮은 클라이언트를 참조점으로 선택
-cos_sims_with_prev = [F.cosine_similarity(g, g_prev, dim=0) for g in filtered_inputs]
-ref_idx = cos_sims_with_prev.index(min(cos_sims_with_prev))
-g_ref = filtered_inputs[ref_idx]
-```
-**목적**: Non-IID 환경에서 "정상이지만 가장 독특한" 업데이트를 기준점으로 활용
-
-#### Step 3: Non-IID Aware Weighting
-```python
-# 참조 클라이언트와의 각도 편차에 반비례하여 가중치 부여
-scores = []
-for g in filtered_inputs:
-    cos_sim_with_ref = F.cosine_similarity(g, g_ref, dim=0)
-    score = 1.0 - cos_sim_with_ref
-    scores.append(F.relu(score))
-```
-**목적**: 참조점과 다를수록 높은 가중치를 부여하여 데이터 다양성 보장
-
-#### Step 4: Magnitude Normalization
-```python
-# 모든 클라이언트 업데이트를 서버 그래디언트와 동일한 크기로 정규화
-g0_norm = torch.norm(g0)
-normalized_g = g * (g0_norm / torch.norm(g))
-```
-**목적**: 악의적인 크기 조작(scaling attack) 방지
-
-#### Step 5: Weighted Aggregation
-```python
-# 가중치를 적용하여 최종 글로벌 모델 업데이트 생성
-aggregated = sum(w * g for w, g in zip(weights, normalized_inputs))
-```
-
-### 2. 프레임워크 통합
-
-**수정된 파일**:
-- `FL-Byzantine-Library/Aggregators/fltg.py` - FLTG 클래스 구현 (신규)
-- `FL-Byzantine-Library/mapper.py` - FLTG를 aggregator 레지스트리에 등록
-- `FL-Byzantine-Library/parameters.py` - 누락된 파라미터 추가
-- `FL-Byzantine-Library/main.py` - 함수 호출 시그니처 수정
+- `FL-Byzantine-Library/Aggregators/fltg.py`에 5단계 방어 메커니즘을 추가하고, 매퍼·파라미터 파일을 통해 `--aggr fltg` 플래그로 선택 가능하도록 등록했다 (`1-implementation/implementation_notes.md:5`).
+- 기존 라이브러리 코드를 건드리지 않고 실험 자동화를 위해 외부 쉘/파이썬 스크립트를 별도로 두었다.
 
 ---
 
-## 🧪 실험 구성
+## 주요 실험 세트
 
-### 실험 1: 초기 검증 실험 (MNIST, IID)
+### 1. MNIST 극한 Non-IID 스트레스 테스트
+- 기본 설정: MNIST, MNISTNET, 클라이언트 100명, 글로벌 에폭 80, 배치 64, CPU 모드 (`2-experiments/mnist/run_extreme_experiments.sh:18-23`).
+- 시나리오
+  - Dirichlet α ∈ {0.01, 0.1} 와 Byzantine 비율 {0.3, 0.5} 조합 (`2-experiments/mnist/run_extreme_experiments.sh:51`, `2-experiments/mnist/run_extreme_experiments.sh:56`).
+  - 정렬·분할 기반 Class Imbalance(클라이언트당 2개의 숫자 클래스) (`2-experiments/mnist/run_extreme_experiments.sh:104-128`).
+  - ROP·IPM 공격 각각에 대한 비교 (`2-experiments/mnist/run_extreme_experiments.sh:144`).
+- 모든 시나리오에서 FedAVG, Krum, Trimmed-Mean, FLTG를 순차 실행하며 로그를 동일 디렉터리에 적재한다 (`2-experiments/mnist/run_extreme_experiments.sh:61`, `2-experiments/mnist/run_extreme_experiments.sh:85`).
+- 총 21개의 조합을 자동 실행하도록 구성되어 있으며, 예상 소요 시간은 약 12시간이다 (`2-experiments/mnist/run_extreme_experiments.sh:183`, `2-experiments/mnist/run_extreme_experiments.sh:189`).
 
-**환경 설정**:
-- 데이터셋: MNIST
-- 모델: MNISTNET (0.431M parameters)
-- 클라이언트 수: 20개
-- 비잔틴 비율: 20% (4개)
-- 공격 유형: ROP (Relocated Orthogonal Perturbation)
-- 학습 라운드: 10 epochs
-- 데이터 분포: IID (균등 분포)
+### 2. MNIST Figure 3 재현(루트 데이터 편향)
+- Dirichlet 기반 데이터 분할과 Root bias JSON을 인자로 사용하며, 편향도 {0.1, 0.5, 0.8}, Byzantine 비율 {0.2, 0.5, 0.8, 0.95}, 공격은 Min-Max를 그대로 따른다 (`2-experiments/mnist/run_fig3_mnist.py:95-99`).
+- 기본값이 CIFAR10/ResNet-20으로 설정돼 있으나, MNIST 재현 시 `--dataset mnist --model mnistnet --clients 100 --epochs 20` 처럼 값을 덮어써 사용한다 (`2-experiments/mnist/run_fig3_mnist.py:88-93`).
+- 비교 대상은 FL-Trust와 FLTG 두 가지이다 (`2-experiments/mnist/run_fig3_mnist.py:97`).
 
-**비교 대상**:
-1. Baseline - 공격 없는 이상적 환경
-2. FedAVG - 방어 메커니즘 없음
-3. Krum - 유클리디안 거리 기반 방어
-4. Trimmed-Mean - 중앙값 기반 방어
-5. FLTG - 제안된 각도 기반 방어
+### 3. MNIST Figure 4 재현(Dirichlet α 스윕)
+- α ∈ {0.1, 0.5, 1.0}, Byzantine 비율 {0.2, 0.5, 0.8, 0.9, 0.95}, 공격은 ROP로 고정했다 (`2-experiments/mnist/run_fig4_mnist.py:90-100`).
+- 동일하게 FL-Trust와 FLTG를 비교 대상 aggregator로 두었으며, 각 α마다 베이스라인(IID, 공격 없음)도 함께 기록한다 (`2-experiments/mnist/run_fig4_mnist.py:66`, `2-experiments/mnist/run_fig4_mnist.py:86`).
 
-**결과**:
-| 방어 기법 | Epoch 1 | Epoch 5 | Epoch 10 | Baseline 대비 |
-|-----------|---------|---------|----------|---------------|
-| Baseline | 90.9% | 97.4% | 98.5% | - |
-| FedAVG | 75.7% | 97.5% | 98.4% | -0.1%p |
-| Trimmed-Mean | 77.5% | 97.3% | 98.2% | -0.3%p |
-| Krum | 89.8% | 97.3% | 98.1% | -0.4%p |
-| FLTG | 63.6% | 97.4% | 97.1% | -1.4%p |
-
-**문제점**: MNIST가 너무 쉬워서 모든 방법이 98%+ 달성 → 차이가 명확하지 않음
-
-### 실험 2: 극단적 Non-IID 실험
-
-초기 실험의 문제점을 해결하기 위해 데이터를 극단적으로 불균등하게 분배:
-
-**실험 시나리오** (총 8개):
-
-1. **Ultra Extreme Non-IID** (Dirichlet α=0.01)
-   - 30% Byzantine (6/20 clients)
-   - 50% Byzantine (10/20 clients)
-
-2. **Extreme Non-IID** (Dirichlet α=0.1)
-   - 30% Byzantine
-   - 50% Byzantine
-
-3. **Class Imbalance** (클라이언트당 정확히 2개 클래스)
-   - 30% Byzantine
-   - 50% Byzantine
-
-4. **다양한 공격 유형** (Ultra Extreme Non-IID + 50% Byzantine)
-   - ROP 공격
-   - IPM 공격
-
-**종합 결과**:
-| 방어 기법 | 승리 횟수 | 승률 |
-|-----------|-----------|------|
-| FLTG | 4/8 | 50.0% |
-| FedAVG | 2/8 | 25.0% |
-| Krum | 2/8 | 25.0% |
-| Trimmed-Mean | 0/8 | 0.0% |
-
-**핵심 발견**: 50% Byzantine 시나리오에서 FLTG가 5/5 승리 (100%)
-
-### 실험 3: Figure 3 재현 실험 (MNIST)
-
-논문의 Figure 3를 재현하기 위한 실험:
-
-**설정**:
-- 다양한 Root Dataset Bias 수준: 0.1, 0.5, 0.8
-- 비잔틴 비율: 0.2, 0.5, 0.8, 0.95
-- 집계 방법: FL-Trust, FLTG
-- 공격: MinMax (adaptive poisoning 근사)
-
-**실행 스크립트**: `run_fig3_mnist.py`
-
-### 실험 4: Figure 4 재현 실험 (MNIST)
-
-논문의 Figure 4를 재현하기 위한 실험:
-
-**설정**:
-- Dirichlet α 수준: 0.1, 0.5, 1.0 (Non-IID 정도)
-- 비잔틴 비율: 0.2, 0.5, 0.8, 0.9, 0.95
-- 집계 방법: FL-Trust, FLTG
-- 공격: ROP
-
-**실행 스크립트**: `run_fig4_mnist.py`
-
-### 실험 5: CIFAR-10 실험
-
-더 복잡한 데이터셋에서의 검증:
-
-**설정**:
-- 데이터셋: CIFAR-10
-- 모델: ResNet-20
-- 클라이언트 수: 80개
-- Epochs: 50
-- Dirichlet α: 0.5
-- Root Dataset Bias: 0.1, 0.5, 0.8
-- 비잔틴 비율: 0.2, 0.5, 0.8, 0.95
-
-**실행 스크립트**: `new_run_fig3_cifar.py`
+### 4. CIFAR-10 Figure 3 확장
+- ResNet-20, 클라이언트 80명, 50 에폭, Bias 레벨 {0.1, 0.5, 0.8} 설정을 사용하며 공격은 Min-Max로 고정했다 (`2-experiments/cifar10/new_run_fig3_cifar.py:86-97`).
+- MNIST 버전과 동일하게 FL-Trust vs FLTG만 비교한다 (`2-experiments/cifar10/new_run_fig3_cifar.py:95`).
 
 ---
 
-## 📊 주요 실험 결과
+## 데이터 생성 유틸
 
-### 1. 50% Byzantine 환경에서의 FLTG 우위
-
-**Ultra Extreme Non-IID (α=0.01) + 50% Byzantine**:
-```
-FLTG:          Epoch 1: 10.7% → Epoch 20: 75.3% (+64.6%p) ⭐
-FedAVG:        Epoch 1: 21.6% → Epoch 20: 66.6% (+45.0%p)
-Trimmed-Mean:  Epoch 1:  9.8% → Epoch 20: 10.3% (+0.5%p) ❌
-Krum:          실행 실패 (Byzantine 비율 너무 높음)
-```
-
-**Class Imbalance + 50% Byzantine** (가장 극적인 결과):
-```
-FLTG:          31.4% → 96.0% (+64.6%p) ⭐⭐⭐
-FedAVG:        10.3% → 10.3% (수렴 실패)
-Trimmed-Mean:  10.1% →  9.8% (수렴 실패)
-Krum:          실행 실패
-```
-→ **다른 모든 방법이 실패했을 때 FLTG만 96% 달성!**
-
-**Extreme ROP 50% Byzantine**:
-```
-FLTG:   95.3% ⭐
-FedAVG: 84.6%
-```
-
-**Extreme IPM 50% Byzantine**:
-```
-FLTG:   96.2% ⭐
-FedAVG: 88.7%
-```
-
-### 2. 30% Byzantine 환경에서의 결과
-
-```
-Ultra Extreme 30%: FedAVG 97.5% > FLTG 94.6%
-Extreme 30%:       Krum 98.4% > FedAVG 97.3% ≈ FLTG 97.3%
-Class Imbal 30%:   Krum 98.5% > FedAVG 97.8% > FLTG 96.5%
-```
-→ 낮은 Byzantine 비율에서는 전통적 방법이 더 효율적
-
-### 3. 학습 특성 분석
-
-**초기 학습 속도** (Epoch 1):
-- Krum: 89.8% (가장 빠름)
-- Trimmed-Mean: 77.5%
-- FedAVG: 75.7%
-- FLTG: 63.6% (가장 느림) ⚠️
-
-**FLTG의 학습 패턴**:
-```
-Epoch 1-5:   매우 느린 시작 (10-30%) 🔴
-Epoch 5-15:  급격한 상승 (+40-60%p) 🟢
-Epoch 15-20: 안정적 수렴 (75-96%)
-```
-→ "느리지만 확실한" 전략
-
-### 4. 계산 비용
-
-**집계 시간** (Epoch 10 기준):
-| 방어 기법 | 총 집계 시간 | 라운드당 평균 |
-|-----------|--------------|---------------|
-| FedAVG | 0.542초 | 0.054초 |
-| Krum | 12.901초 | 1.290초 |
-| FLTG | 13.116초 | 1.312초 |
-| Trimmed-Mean | 14.645초 | 1.465초 |
+- `mnist_bias_utils.py`는 Dirichlet 분할과 Root bias 인덱스를 생성해 JSON으로 저장하며, `mnist_bias_configs` 폴더를 자동 생성한다 (`2-experiments/utils/mnist_bias_utils.py:21`, `2-experiments/utils/mnist_bias_utils.py:37`, `2-experiments/utils/mnist_bias_utils.py:69-79`).
+- CIFAR-10도 동일한 방식으로 `new_cifar_bias_utils.py`를 통해 구성할 수 있다 (`2-experiments/cifar10/new_run_fig3_cifar.py:99`).
 
 ---
 
-## 💡 핵심 통찰
+## 결과 하이라이트
 
-### 1. FLTG의 진정한 가치
-
-**FLTG가 필수적인 경우**:
-- ✅ Byzantine 비율 ≥ 50% (절반 이상이 악의적)
-- ✅ 극단적 데이터 편향 (클라이언트마다 완전히 다른 데이터)
-- ✅ 전통적 방법이 모두 실패하는 최악의 시나리오
-
-**FLTG가 과도한 경우**:
-- ❌ Byzantine 비율 < 30% (Krum, Trimmed-Mean으로 충분)
-- ❌ IID 또는 약한 Non-IID 데이터
-- ❌ 일반적인 연합 학습 환경
-
-### 2. 실무 권장사항
-
-| Byzantine 비율 | 데이터 분포 | 추천 방법 | 이유 |
-|----------------|-------------|-----------|------|
-| < 20% | IID | FedAVG | 단순하고 효과적 |
-| 20-30% | 약한 Non-IID | Krum / Trimmed-Mean | 검증된 방어, 빠른 수렴 |
-| 30-40% | 중간 Non-IID | Krum / FLTG | 상황에 따라 선택 |
-| ≥ 50% | 극단적 Non-IID | FLTG 필수! | 유일하게 작동하는 방법 |
-
-### 3. 논문 주장 검증 결과
-
-**논문의 핵심 주장**:
-> "FLTG는 50% 이상의 악의적 클라이언트 환경에서도 기존 방법보다 우수한 성능을 보인다."
-
-**검증 결과**: ✅ **부분적으로 입증됨!**
-
-**성공적 검증** (50% Byzantine):
-- ✅ Ultra Extreme Non-IID: FLTG 75.3% vs FedAVG 66.6% (+8.7%p)
-- ✅ Class Imbalance: FLTG 96.0% vs 다른 방법들 <11% (압도적 우위)
-- ✅ Extreme ROP: FLTG 95.3% vs FedAVG 84.6% (+10.7%p)
-- ✅ Extreme IPM: FLTG 96.2% vs FedAVG 88.7% (+7.5%p)
-
-**초기 실험의 문제점** (20% Byzantine, IID):
-- ❌ 너무 쉬운 조건: 모든 방법이 98%+ 달성
-- ❌ 낮은 Byzantine 비율: 전통적 방법도 충분히 효과적
-- ❌ IID 데이터: FLTG의 Non-IID 대응 능력이 불필요
-
-### 4. "복잡성 vs 효과" 트레이드오프
-
-**FLTG의 계산 비용**:
-- 집계 시간: 다른 방법의 ~20배
-- 구현 복잡도: 높음 (5단계 알고리즘)
-- 디버깅 난이도: 높음
-
-**언제 가치가 있나?**:
-- ✅ Byzantine 비율이 50% 이상일 때 → 필수
-- ✅ 데이터가 극단적으로 불균등할 때 → 매우 유용
-- ❌ 일반적 상황 → 과도한 복잡성
+- 극한 Non-IID 8개 시나리오에서 FLTG가 4회 승리(50%), FedAVG 2회, Krum 2회, Trimmed-Mean 0회로 집계되었다 (`3-results/extreme_noniid/EXTREME_RESULTS_SUMMARY.txt:4-11`).
+- Ultra Extreme Non-IID(α=0.01) + 50% Byzantine 환경에서는 FLTG가 10.7%→75.3%까지 회복하며 FedAVG(21.6%→66.6%)보다 8.7%p 높았다 (`README.md:193-194`, `README.md:288`).
+- Class Imbalance + 50% Byzantine 실험에서는 FLTG가 31.4%→96.0%까지 상승한 반면, FedAVG·Trimmed-Mean는 10%대에 머물렀다 (`README.md:201-202`, `README.md:289`).
+- ROP·IPM 공격 모두에서 50% Byzantine 시 FLTG가 각각 95.3%, 96.2%로 FedAVG 대비 7–11%p 우위를 보였다 (`README.md:210`, `README.md:216`, `README.md:290-291`).
+- 30% Byzantine 수준에서는 Krum이나 FedAVG가 우세한 경우도 있어, FLTG의 이점이 극단적 조건에 집중돼 있음을 확인했다 (`README.md:223-225`).
+- IID에 가까운 조건에서는 네 방법 모두 98%대 정확도로 수렴하며, FLTG는 초기 1 에폭 수렴 속도가 느린 편이다 (`4-analysis/ANALYSIS.md:6-15`).
 
 ---
 
-## 🔧 구현 개선 방향
-
-### 단기 개선
-
-1. **참조 클라이언트 선택 개선**
-```python
-# 현재: 최소값 선택
-ref_idx = cos_sims_with_prev.index(min(cos_sims_with_prev))
-
-# 개선안: 중간값 선택 (극단값 회피)
-sorted_indices = sorted(range(len(cos_sims_with_prev)),
-                       key=lambda i: cos_sims_with_prev[i])
-median_idx = sorted_indices[len(sorted_indices) // 2]
-ref_idx = median_idx
-```
-
-2. **서버 그래디언트 가중치 증가**
-```python
-# 개선안: 서버 그래디언트에 더 높은 신뢰
-aggregated = 0.3 * g0 + 0.7 * sum(w * g for w, g in zip(weights, normalized_inputs))
-```
-
-3. **루트 데이터셋 크기 증가**
-```python
-root_dataset_inds = np.random.choice(range(l), 500, replace=False)  # 100 → 500
-```
-
-### 중기 개선
-
-1. **2단계 필터링**: 서버 유사도 + 클라이언트 간 상호 유사도
-2. **적응적 가중치**: 학습 단계에 따라 가중치 조정
-3. **참조점 앙상블**: 단일 참조점 대신 top-k 참조점 사용
-
-### 장기 개선
-
-1. 논문 원저자와 소통하여 정확한 구현 세부사항 확인
-2. 더 강한 실험 환경 (다양한 공격, 복잡한 데이터셋)
-3. 이론적 분석 및 수렴성 증명
-
----
-
-## 📂 프로젝트 구조
-
-```
-FLTG-implementation/
-├── FL-Byzantine-Library/           # 기반 프레임워크
-│   ├── Aggregators/
-│   │   ├── fltg.py                # ✨ FLTG 구현 (신규)
-│   │   ├── fedavg.py
-│   │   ├── krum.py
-│   │   ├── trimmed_mean.py
-│   │   └── fl_trust.py
-│   ├── Attacks/
-│   │   ├── rop.py
-│   │   ├── ipm.py
-│   │   └── minmax.py
-│   ├── Models/
-│   │   └── CNN.py
-│   ├── main.py
-│   ├── mapper.py
-│   └── parameters.py
-├── run_fig3_mnist.py              # Figure 3 재현 (MNIST)
-├── run_fig4_mnist.py              # Figure 4 재현 (MNIST)
-├── new_run_fig3_cifar.py          # Figure 3 재현 (CIFAR-10)
-├── run_extreme_experiments.sh     # 극단적 Non-IID 실험
-├── analyze_extreme_results.py     # 실험 결과 분석
-├── plot_fig3_mnist.py             # Figure 3 시각화
-├── plot_fig4_mnist.py             # Figure 4 시각화
-├── new_plot_fig3_cifar.py         # CIFAR-10 시각화
-├── mnist_bias_utils.py            # MNIST bias 설정 유틸리티
-├── new_cifar_bias_utils.py        # CIFAR-10 bias 설정 유틸리티
-├── results_fig3_mnist/            # Figure 3 실험 결과
-├── results_fig4_mnist/            # Figure 4 실험 결과
-├── new_results_fig3_cifar/        # CIFAR-10 실험 결과
-├── README.md                      # 메인 문서
-├── README_1.md                    # 본 문서
-├── ANALYSIS.txt                   # 상세 분석
-└── EXTREME_RESULTS_SUMMARY.txt    # 극단적 실험 요약
-```
-
----
-
-## 🚀 실험 실행 방법
-
-### 환경 설정
-
-```bash
-# 의존성 설치
-pip install torch torchvision matplotlib numpy scipy
-
-# 또는 가상환경 사용
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r FL-Byzantine-Library/requirments.txt
-```
-
-### 기본 실험 실행
-
-```bash
-cd FL-Byzantine-Library
-
-# FLTG 테스트
-python main.py --dataset_name mnist --nn_name mnistnet \
-  --num_client 20 --traitor 0.2 --attack rop \
-  --aggr fltg --trials 1 --global_epoch 10 \
-  --gpu_id -1 --bs 64
-```
-
-### 극단적 Non-IID 실험
-
-```bash
-cd FLTG-implementation
-
-# 백그라운드 실행
-nohup bash run_extreme_experiments.sh > extreme_output.log 2>&1 &
-
-# 진행 상황 확인
-tail -f extreme_output.log
-
-# 결과 분석
-python analyze_extreme_results.py
-```
-
-### Figure 재현 실험
-
-```bash
-# Figure 3 (MNIST)
-python run_fig3_mnist.py --epochs 20 --clients 100
-
-# Figure 4 (MNIST)
-python run_fig4_mnist.py --epochs 20 --clients 100
-
-# Figure 3 (CIFAR-10)
-python new_run_fig3_cifar.py --epochs 50 --clients 80 --gpu_id 0
-```
-
-### 결과 시각화
-
-```bash
-# Figure 3 플롯
-python plot_fig3_mnist.py --results_dir results_fig3_mnist/<timestamp>
-
-# Figure 4 플롯
-python plot_fig4_mnist.py --results_dir results_fig4_mnist/<timestamp>
-
-# CIFAR-10 플롯
-python new_plot_fig3_cifar.py --results_dir new_results_fig3_cifar/<timestamp>
-```
-
----
-
-## 📈 실험 결과 해석
-
-### 성공 기준
-
-**FLTG가 효과적인 경우**:
-- 50% Byzantine 환경에서 다른 방법보다 5%p 이상 높은 정확도
-- 극단적 Non-IID 환경에서 안정적 수렴
-- 다른 방법이 실패할 때 유일하게 작동
-
-**개선이 필요한 경우**:
-- 30% 이하 Byzantine 환경에서 전통적 방법보다 낮은 성능
-- 초기 수렴 속도가 지나치게 느림
-- 계산 비용 대비 성능 향상이 미미함
-
----
-
-## 🎓 학술적/실무적 시사점
-
-### 학술적 관점
-
-1. **재현성의 중요성**: 논문 결과 재현을 위한 코드 공개 필수
-2. **부정적 결과의 가치**: 실패한 시도도 공유할 필요
-3. **실증적 검증**: 이론만으로는 부족, 다양한 환경에서 실험 필요
-4. **벤치마크 설계**: 너무 쉬운 조건에서는 차이가 드러나지 않음
-
-### 실무적 관점
-
-1. **단순함의 가치**: Krum, Trimmed-Mean 같은 검증된 방법 우선 고려
-2. **환경 맞춤**: 공격 비율, 데이터 특성에 따라 방어 기법 선택
-3. **비용 대비 효과**: 복잡한 알고리즘의 계산 비용 고려
-4. **점진적 도입**: 일반 환경에서는 단순한 방법, 극한 상황에서만 FLTG
-
-### 연구 윤리
-
-1. **투명성**: 모든 세부사항을 명시해야 함
-2. **재현 가능성**: 공식 구현 공개 필요
-3. **정직한 보고**: 예상과 다른 결과도 보고
-
----
-
-## 🏆 최종 결론
-
-### 논문의 주장은 맞았다!
-
-**하지만 조건이 있다**:
-1. Byzantine 비율이 50% 이상일 때만 진가를 발휘
-2. 극단적 Non-IID 환경에서 특히 강력
-3. 일반적인 환경에서는 과도한 복잡성
-
-### 실험을 통해 배운 것
-
-1. **벤치마크의 중요성**: 너무 쉬운 조건에서는 차이가 안 보임
-2. **극한 조건 테스트**: 알고리즘의 진정한 강점은 극한 상황에서 드러남
-3. **실패도 인사이트**: 초기 실패 → 더 나은 실험 설계 → 논문 검증 성공
-
-### 프로젝트 성과
-
-- ✅ FLTG 알고리즘 구현 성공
-- ✅ 극단적 조건에서 논문 주장 검증
-- ✅ 50% Byzantine 환경에서 100% 승률
-- ✅ Class Imbalance 시나리오에서 유일하게 작동하는 방법 입증
-- ✅ 실무 적용 가이드라인 제시
-
-### 이 프로젝트의 가치
-
-> "실패한 것처럼 보였지만, 올바른 조건에서 테스트하여 논문의 진정한 가치를 입증했습니다."
-
-- 초기 결과 (97.1%): FLTG가 약해 보임
-- 극단적 실험 (96.0%): 다른 모든 방법이 실패했을 때 FLTG만 작동
-- **결론**: 문제는 알고리즘이 아니라 실험 조건이었음
-
----
-
-## 📝 인용
-
-이 프로젝트를 사용하거나 참고하신다면 다음을 인용해주세요:
-
-```bibtex
-@misc{fltg-implementation-2025,
-  title={FLTG Byzantine-Robust Federated Learning Implementation and Validation},
-  year={2025},
-  note={Implementation and experimental validation of FLTG algorithm with comprehensive analysis}
-}
-```
-
----
-
-## 📧 문의
-
-문제나 질문이 있으시면 Issue를 열어주세요.
-
----
-
-**Made with ❤️ and 🤔**
-
-*"실패는 성공의 어머니" - 예상과 다른 결과를 통해 더 많은 것을 배웠습니다.*
+## 실행 방법
+
+1. (1회) `SETUP.md`에 맞춰 FL-Byzantine-Library 의존성을 설치한다.
+2. 극한 Non-IID 실험  
+   ```bash
+   bash 2-experiments/mnist/run_extreme_experiments.sh
